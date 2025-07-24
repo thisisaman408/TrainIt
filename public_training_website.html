@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Training - AI-Guided Practice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .step {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        .step h2 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        /* AI Phrase Suggestion Styles */
+        .phrase-suggestion {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .phrase-text {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        .phrase-context {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+        
+        .refresh-phrase {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+        }
+        
+        .refresh-phrase:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* Speaking Tips */
+        .speaking-tips {
+            background: #e8f4f8;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .speaking-tips h4 {
+            color: #17a2b8;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .speaking-tips ul {
+            margin-left: 20px;
+        }
+        
+        .speaking-tips li {
+            margin-bottom: 5px;
+            color: #555;
+        }
+        
+        .record-button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 20px auto;
+        }
+        
+        .record-button:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        
+        .record-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .recording {
+            background: #27ae60 !important;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .transcription-box {
+            background: white;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .transcription-box h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .transcription-text {
+            color: #34495e;
+            font-size: 1.1em;
+            line-height: 1.5;
+            font-style: italic;
+        }
+        
+        .correction-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1.1em;
+            margin: 10px 0;
+            font-family: inherit;
+        }
+        
+        .correction-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .submit-button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .submit-button:hover {
+            background: #229954;
+        }
+        
+        .progress-bar {
+            background: #ecf0f1;
+            height: 6px;
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: #667eea;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .success-message {
+            background: #d5f4e6;
+            color: #27ae60;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        
+        .error-message {
+            background: #ffeaea;
+            color: #e74c3c;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .stats-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ AI-Guided Voice Training</h1>
+            <p>Practice with AI-generated phrases to improve voice recognition</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <!-- Step 1: AI Phrase Suggestion -->
+        <div class="step active" id="step1">
+            <h2><span class="step-number">1</span>Your Practice Phrase</h2>
+            <p>Our AI has generated a unique phrase for you to practice with:</p>
+            
+            <div class="phrase-suggestion" id="phraseSuggestion">
+                <div class="phrase-text" id="phraseText">Loading your unique phrase...</div>
+                <div class="phrase-context" id="phraseContext"></div>
+                <button class="refresh-phrase" onclick="getNewPhrase()">🔄 Get Different Phrase</button>
+            </div>
+            
+            <div class="speaking-tips" id="speakingTips" style="display: none;">
+                <h4>💡 Speaking Tips for Natural Recording:</h4>
+                <ul id="tipsList"></ul>
+            </div>
+            
+            <button class="record-button" id="recordButton" onclick="toggleRecording()">
+                🎙️ Start Recording This Phrase
+            </button>
+            
+            <div id="recordingStatus" class="loading" style="display: none;">
+                Recording... Speak the phrase above naturally!
+            </div>
+            
+            <div class="stats-info">
+                <div id="statsInfo">Loading training statistics...</div>
+            </div>
+        </div>
+        
+        <!-- Step 2: Review -->
+        <div class="step" id="step2">
+            <h2><span class="step-number">2</span>Review AI Transcription</h2>
+            <p>Here's what our AI heard vs what you were supposed to say:</p>
+            
+            <div class="transcription-box">
+                <h3>🎯 Your Target Phrase:</h3>
+                <div class="transcription-text" id="targetPhrase"></div>
+            </div>
+            
+            <div class="transcription-box">
+                <h3>🤖 AI Heard:</h3>
+                <div class="transcription-text" id="originalTranscription"></div>
+            </div>
+            
+            <div class="transcription-box">
+                <h3>✨ AI Suggestion:</h3>
+                <div class="transcription-text" id="aiSuggestion"></div>
+            </div>
+            <button class="submit-button" onclick="showStep(3)" style="margin-top: 20px;">
+                ➡️ Continue to Correction
+            </button>
+        </div>
+        
+        <!-- Step 3: Correction -->
+        <div class="step" id="step3">
+            <h2><span class="step-number">3</span>Correct the AI</h2>
+            <p>Help train the AI by providing the correct transcription:</p>
+            
+            <textarea 
+                class="correction-input" 
+                id="userCorrection" 
+                placeholder="Type exactly what you said (or leave as-is if correct)..."
+                rows="3"
+            ></textarea>
+            
+            <p style="margin: 15px 0 5px 0; color: #666;">Optional feedback:</p>
+            <input 
+                type="text" 
+                class="correction-input" 
+                id="userFeedback" 
+                placeholder="Any issues with the recording or AI? (optional)"
+            >
+            
+            <p style="margin: 15px 0 5px 0; color: #666;">Your name (optional):</p>
+            <input 
+                type="text" 
+                class="correction-input" 
+                id="userName" 
+                placeholder="Name or initials (optional)"
+            >
+            
+            <button class="submit-button" onclick="submitCorrection()">
+                ✅ Submit Correction & Help Train AI
+            </button>
+        </div>
+        
+        <!-- Step 4: Success -->
+        <div class="step" id="step4">
+            <div class="success-message">
+                <h2>🎉 Thank You!</h2>
+                <p>Your training contribution has been recorded! You've helped improve our Notion voice AI system.</p>
+                <div style="margin: 15px 0; padding: 10px; background: rgba(255,255,255,0.3); border-radius: 8px;">
+                    <strong>What you trained:</strong><br>
+                    <span id="trainedPhrase" style="font-style: italic;"></span>
+                </div>
+                <button class="submit-button" onclick="startOver()" style="margin-top: 20px;">
+                    🔄 Train Another Phrase
+                </button>
+            </div>
+        </div>
+        
+        <!-- Error Step -->
+        <div class="step" id="errorStep">
+            <div class="error-message">
+                <h2>❌ Something went wrong</h2>
+                <p id="errorMessage"></p>
+                <button class="submit-button" onclick="startOver()" style="margin-top: 20px;">
+                    🔄 Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Replace with your actual backend URL
+        const API_BASE = 'https://notionautomation-hn3k.onrender.com/api/v1';
+        
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let currentSessionId = null;
+        let currentPhraseId = null;
+        let currentPhrase = '';
+        let userSession = generateUserSession();
+        
+        function generateUserSession() {
+            return 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        }
+        
+        function updateProgress(percentage) {
+            document.getElementById('progressFill').style.width = percentage + '%';
+        }
+        
+        function showStep(stepNumber) {
+            // Hide all steps
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // Show target step
+            document.getElementById(`step${stepNumber}`).classList.add('active');
+            
+            // Update progress
+            updateProgress((stepNumber - 1) * 25);
+        }
+        
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+            document.getElementById('errorStep').classList.add('active');
+        }
+        
+        async function getNewPhrase() {
+            try {
+                document.getElementById('phraseText').textContent = 'Loading new phrase...';
+                document.getElementById('speakingTips').style.display = 'none';
+                
+                const response = await fetch(`${API_BASE}/phrases/get-suggestion?user_session=${userSession}`);
+                
+                if (!response.ok) {
+                    throw new Error("Server error: " + response.status);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentPhrase = result.phrase;
+                    currentPhraseId = result.phrase_id;
+                    
+                    document.getElementById('phraseText').textContent = result.phrase;
+                    document.getElementById('phraseContext').textContent = 
+                        `Context: ${result.context} • Used ${result.usage_count}/3 times`;
+                    
+                    // Show speaking tips
+                    const tipsList = document.getElementById('tipsList');
+                    tipsList.innerHTML = '';
+                    result.speaking_tips.forEach(tip => {
+                        const li = document.createElement('li');
+                        li.textContent = tip;
+                        tipsList.appendChild(li);
+                    });
+                    document.getElementById('speakingTips').style.display = 'block';
+                    
+                } else {
+                    throw new Error('Failed to get phrase suggestion');
+                }
+                
+            } catch (error) {
+                console.error('Error getting new phrase:', error);
+                showError('Failed to load training phrase. Please refresh and try again.');
+            }
+        }
+        
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/phrases/stats`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const stats = result.stats;
+                    document.getElementById('statsInfo').innerHTML = 
+                        `📊 Training Pool: ${stats.active_phrases || 0} phrases available • ${stats.total_usage || 0} total recordings`;
+                }
+            } catch (error) {
+                console.log('Stats loading failed (non-critical)');
+            }
+        }
+        
+        async function toggleRecording() {
+            if (!currentPhraseId) {
+                showError('Please wait for phrase to load');
+                return;
+            }
+            
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+                    
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        await processAudio(audioBlob);
+                        
+                        // Mark phrase as used
+                        try {
+                            await fetch(`${API_BASE}/phrases/mark-used`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    phrase_id: currentPhraseId,
+                                    user_session: userSession
+                                })
+                            });
+                        } catch (e) {
+                            console.log('Failed to mark phrase as used:', e);
+                        }
+                    };
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    
+                    const button = document.getElementById('recordButton');
+                    button.textContent = '🛑 Stop Recording';
+                    button.classList.add('recording');
+                    document.getElementById('recordingStatus').style.display = 'block';
+                    
+                } catch (error) {
+                    showError('Could not access microphone. Please allow microphone access and try again.');
+                }
+            } else {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                isRecording = false;
+                
+                const button = document.getElementById('recordButton');
+                button.textContent = '⏳ Processing...';
+                button.classList.remove('recording');
+                button.disabled = true;
+                document.getElementById('recordingStatus').textContent = 'Processing audio...';
+            }
+        }
+        
+        async function processAudio(audioBlob) {
+            try {
+                const formData = new FormData();
+                formData.append('audio_file', audioBlob, 'recording.wav');
+                
+                const response = await fetch(`${API_BASE}/public-training/upload-audio`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentSessionId = result.session_id;
+                    
+                    // Store current phrase for comparison
+                    document.getElementById('targetPhrase').textContent = currentPhrase;
+                    document.getElementById('originalTranscription').textContent = result.original_transcription;
+                    document.getElementById('aiSuggestion').textContent = result.ai_suggestion;
+                    document.getElementById('userCorrection').value = result.ai_suggestion;
+                    
+                    showStep(2);
+                } else {
+                    showError('Failed to process audio. Please try again.');
+                }
+                
+            } catch (error) {
+                console.error('Processing error:', error);
+                showError('Network error. Please check your connection and try again.');
+            }
+        }
+        
+        async function submitCorrection() {
+            try {
+                const userCorrection = document.getElementById('userCorrection').value.trim();
+                
+                if (!userCorrection) {
+                    alert('Please enter the correct transcription.');
+                    return;
+                }
+                
+                const data = {
+                    session_id: currentSessionId,
+                    user_correction: userCorrection,
+                    user_feedback: document.getElementById('userFeedback').value.trim() || null,
+                    user_name: document.getElementById('userName').value.trim() || null
+                };
+                
+                const response = await fetch(`${API_BASE}/public-training/submit-correction`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('trainedPhrase').textContent = currentPhrase;
+                    updateProgress(100);
+                    showStep(4);
+                } else {
+                    showError('Failed to submit correction. Please try again.');
+                }
+                
+            } catch (error) {
+                console.error('Submission error:', error);
+                showError('Network error. Please try again.');
+            }
+        }
+        
+        function startOver() {
+            // Reset all form fields
+            document.getElementById('userCorrection').value = '';
+            document.getElementById('userFeedback').value = '';
+            document.getElementById('userName').value = '';
+            document.getElementById('originalTranscription').textContent = '';
+            document.getElementById('aiSuggestion').textContent = '';
+            document.getElementById('targetPhrase').textContent = '';
+            
+            // Reset recording button
+            const button = document.getElementById('recordButton');
+            button.textContent = '🎙️ Start Recording This Phrase';
+            button.classList.remove('recording');
+            button.disabled = false;
+            document.getElementById('recordingStatus').style.display = 'none';
+            
+            // Reset state
+            isRecording = false;
+            currentSessionId = null;
+            currentPhraseId = null;
+            currentPhrase = '';
+            audioChunks = [];
+            
+            // Show first step and get new phrase
+            showStep(1);
+            getNewPhrase();
+            loadStats();
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress(0);
+            getNewPhrase();
+            loadStats();
+        });
+    </script>
+</body>
+</html>
